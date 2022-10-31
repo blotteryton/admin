@@ -1,19 +1,18 @@
 from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
 from django.views import View
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import Group
 
 from users.forms import UserCreationForm
-from users.models import User, NFT
+from users.utils import create_wallet
+
 
 class Register(View):
-
     template_name = 'register.html'
 
     def get(self, request):
         context = {
-          'form': UserCreationForm()
+            'form': UserCreationForm()
         }
         return render(request, self.template_name, context)
 
@@ -24,18 +23,24 @@ class Register(View):
             form.save()
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password1')
-            #get user
+            # get user
             user = authenticate(username=username, password=password)
-            #set user group
+            # set user group
             bloggers_group = Group.objects.get(name='bloggers')
             bloggers_group.user_set.add(user)
-            #set access to admin panel
+            # set access to admin panel
             user.is_staff = True
             user.save()
-            #redirect to admin panel
+            # redirect to admin panel
             return redirect('../login/')
         else:
             context = {
                 "form": form
             }
             return render(request, self.template_name, context)
+
+
+class CreateWallet(View):
+    def get(self, request):
+        create_wallet(user=self.request.user)
+        return redirect(request.META.get('HTTP_REFERER', '/'))

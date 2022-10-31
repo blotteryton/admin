@@ -1,4 +1,5 @@
 {% extends "admin/base.html" %}
+{% load i18n %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
@@ -10,10 +11,22 @@
 
 {% endblock %}
 
-{% block nav-global %}
-
-<form method="GET">
-  <button type="submit" name="script">Создать кошелёк</button>
-</form>
-
+{% block usertools %}
+{% if has_permission %}
+    <div id="user-tools">
+        {% block welcome-msg %}
+            {{ block.super }}
+            {% if user.has_wallet %}
+                {% translate 'Wallet: ' %}<strong style="text-transform: none !important;">{{ user.wallet_address }}</strong>.
+                {% translate 'Balance: ' %}<strong>{{ user.wallet_balance }}</strong>.
+            {% endif %}
+        {% endblock %}
+        {% block userlinks %}
+            {{ block.super }}
+            {% if not user.has_wallet %}
+                / <a href="{% url 'create_wallet' %}">{% translate 'Create Wallet' %}</a>
+            {% endif %}
+        {% endblock %}
+    </div>
+{% endif %}
 {% endblock %}
