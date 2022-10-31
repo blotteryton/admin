@@ -2,31 +2,54 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 
-from .models import *
+from .models import NFT, CollectionNFT
 
 User = get_user_model()
 
-#This is necessary because we are redefining the class "User" in the model
+
 @admin.register(User)
 class UserAdmin(UserAdmin):
     pass
+
 
 class NFTAdmin(admin.ModelAdmin):
     list_display = ('name', 'price')
     search_fields = ('name', 'description')
     list_editable = ('price',)
-    list_filter = ('collection',)
+    list_filter = (('user__collections', admin.RelatedOnlyFieldListFilter),)
 
-    # def save_model(self, request, obj, form, change):
-    #     obj.user_id = request.user.id
-    #     obj.save()
-    # def get_list_display(self, request):
-    #     print(request)
-        #return ", ".join([cat.name for cat in request.NFT.all()])
+    def get_queryset(self, request):
+        return NFT.objects.filter(user_id=request.user.pk)
 
-class NFTCategoryAdmin(admin.ModelAdmin):
+    def get_field_queryset(self, db, db_field, request):
+        if db_field.name == "collection":
+            return CollectionNFT.objects.filter(user_id=request.user.pk)
+        return super(NFTAdmin, self).get_field_queryset(db, db_field, request)
+
+    def save_model(self, request, instance, form, change):
+        instance = form.save(commit=False)
+        if not change or not instance.user:
+            instance.user = request.user
+        instance.save()
+        form.save_m2m()
+        return instance
+
+
+class NFTCollectionAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
 
-admin.site.register(CategoryNFT, NFTCategoryAdmin)
+    def get_queryset(self, request):
+        return CollectionNFT.objects.filter(user_id=request.user.pk)
+
+    def save_model(self, request, instance, form, change):
+        instance = form.save(commit=False)
+        if not change or not instance.user:
+            instance.user = request.user
+        instance.save()
+        form.save_m2m()
+        return instance
+
+
+admin.site.register(CollectionNFT, NFTCollectionAdmin)
 admin.site.register(NFT, NFTAdmin)
