@@ -36,6 +36,7 @@ SECRET_KEY = 'django-insecure-+199hs--kpg-f$buvlf4r-7&sve@sp7e4m2gk=7+5=*bwsb4b5
 DEBUG = True
 
 ALLOWED_HOSTS = json.loads(os.environ.get("ALLOWED_HOSTS", "[]"))
+CSRF_TRUSTED_ORIGINS = json.loads(os.environ.get("CSRF_TRUSTED_ORIGINS", "[]"))
 
 AUTH_USER_MODEL = 'users.User'
 
