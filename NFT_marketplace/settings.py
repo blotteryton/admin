@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import json
 from pathlib import Path
 import os
 from environs import Env
@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-+199hs--kpg-f$buvlf4r-7&sve@sp7e4m2gk=7+5=*bwsb4b5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = json.loads(os.environ.get("ALLOWED_HOSTS", "[]"))
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-LOGIN_REDIRECT_URL =  '/'
+LOGIN_REDIRECT_URL = '/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -99,7 +99,7 @@ DATABASES = {
         'USER': POSTGRES_USER,
         'PASSWORD': POSTGRES_PASSWORD,
         'HOST': POSTGRES_HOST,
-        'PORT': '',
+        'PORT': os.environ.get("POSTGRES_PORT", 5432),
     }
 }
 
