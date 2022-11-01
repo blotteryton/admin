@@ -140,11 +140,19 @@ class NFTCollectionAdmin(DjangoObjectActions, admin.ModelAdmin):
             obj.save()
 
     def get_change_actions(self, request, object_id, form_url):
-        actions = super(NFTCollectionAdmin, self).get_change_actions(request, object_id, form_url)
-        actions = list(actions)
+        actions = list(super(NFTCollectionAdmin, self).get_change_actions(request, object_id, form_url))
 
         obj = self.model.objects.get(pk=object_id)
         if obj.is_approved_to_sale or not request.user.is_superuser:
             actions.remove('approve')
+
+        return actions
+
+    def get_changelist_actions(self, request):
+        actions = list(super(NFTCollectionAdmin, self).get_changelist_actions(request))
+
+        if not request.user.collections.exists():
+            actions.remove('create_sale')
+            actions.remove('create_draw')
 
         return actions
