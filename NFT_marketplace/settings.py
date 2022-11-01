@@ -45,6 +45,7 @@ AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
+    'administration.apps.AdministrationConfig',
     'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_object_actions',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
