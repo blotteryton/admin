@@ -13,7 +13,9 @@ User = get_user_model()
 class RecommendationsView(RetrieveAPIView):
     permission_classes = [AllowAny]
     serializer_class = RecommendationsSerializer
-    queryset = MarketplaceConfiguration.get_solo()
+
+    def get_queryset(self):
+        return MarketplaceConfiguration.get_solo()
 
     def get_object(self):
         return self.get_queryset()

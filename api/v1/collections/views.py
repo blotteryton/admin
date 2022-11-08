@@ -49,4 +49,6 @@ class CollectionNewView(ListAPIView):
 class CollectionPopularView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = NFTCollectionSerializer
-    queryset = MarketplaceConfiguration.get_solo().popular_collections.get_queryset().order_by("id")
+
+    def get_queryset(self):
+        return MarketplaceConfiguration.get_solo().popular_collections.get_queryset().order_by("id")
