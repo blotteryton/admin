@@ -1,6 +1,8 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
+from solo.models import SingletonModel
 
 
 User = get_user_model()
@@ -25,12 +27,15 @@ class Project(models.Model):
 
 class ProjectMember(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT)
-    name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
 
     email = models.EmailField(max_length=255)
-    username = models.CharField(max_length=255)
+    username = models.CharField(max_length=150)
     password = models.CharField(max_length=255)
+
+    avatar = models.ImageField(upload_to="blogger_avatars/", blank=True, null=True)
+    cover = models.ImageField(upload_to="blogger_covers/", blank=True, null=True)
 
     user = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
 
@@ -50,10 +55,12 @@ class ProjectMember(models.Model):
 
             self.user = user
         else:
-            self.user.name = self.name
+            self.user.first_name = self.name
             self.user.last_name = self.last_name
             self.user.email = self.email
             self.user.username = self.username
+            self.user.avatar = self.avatar
+            self.user.cover = self.cover
 
             if not self.user.check_password(self.password):
                 self.user.set_password(self.password)
@@ -68,3 +75,48 @@ class ProjectMember(models.Model):
     class Meta:
         verbose_name = "Project Member"
         verbose_name_plural = "Project Members"
+
+
+class Configuration(SingletonModel):
+    collection_create_royalty = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True, validators=[
+            MinValueValidator(0.0099)
+        ])
+    collection_create_royalty_address = models.CharField(max_length=255, blank=True, null=True)
+
+    collection_create_external_link = models.URLField(blank=True, null=True)
+    collection_create_seller_fee_basis_points = models.PositiveIntegerField(validators=[
+            MaxValueValidator(10000),
+            MinValueValidator(1)
+        ], blank=True, null=True)
+    collection_create_fee_recipient = models.CharField(
+        max_length=255, blank=True, null=True, help_text="use \"self\" for the address of the collection's creator."
+    )
+    collection_create_amount = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True, validators=[
+            MinValueValidator(0.0099)
+        ])
+
+    nft_create_amount = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True, validators=[
+        MinValueValidator(0.0099)
+    ])
+
+    nft_item_content_base_uri = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return "Configuration"
+
+    class Meta:
+        verbose_name = "Configuration"
+        verbose_name_plural = "Configuration"
+
+
+class MarketplaceConfiguration(SingletonModel):
+    recommended_collections = models.ManyToManyField("nft.CollectionNFT", related_name="recommended_collections")
+    popular_collections = models.ManyToManyField("nft.CollectionNFT", related_name="popular_collections")
+    recommended_authors = models.ManyToManyField("users.User")
+
+    def __str__(self):
+        return "Marketplace configuration"
+
+    class Meta:
+        verbose_name = "Marketplace configuration"
+        verbose_name_plural = "Marketplace configuration"
