@@ -26,6 +26,9 @@ ALLOWED_HOSTS = json.loads(os.environ.get("ALLOWED_HOSTS", "[]"))
 CSRF_TRUSTED_ORIGINS = json.loads(os.environ.get("CSRF_TRUSTED_ORIGINS", "[]"))
 CORS_ALLOWED_ORIGINS = json.loads(os.environ.get("CORS_ALLOWED_ORIGINS", "[]"))
 
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 AUTH_USER_MODEL = 'users.User'
 
 
