@@ -10,3 +10,4 @@ drf-yasg==1.21.4
 requests-toolbelt==0.10.1
 django-cors-headers==3.13.0
 django-solo==2.0.0
+django-filter==22.1

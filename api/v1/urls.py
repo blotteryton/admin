@@ -7,4 +7,5 @@ urlpatterns = [
     path('collections/', include("api.v1.collections.urls")),
     path('nfts/', include("api.v1.nfts.urls")),
     path('recommendations/', include("api.v1.recommendations.urls")),
+    path('notifications/', include("api.v1.notifications.urls")),
 ]

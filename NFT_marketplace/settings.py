@@ -45,7 +45,8 @@ LIB_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'drf_yasg',
-    'solo'
+    'solo',
+    'django_filters',
 ]
 
 LOCAL_APPS = [
@@ -53,6 +54,7 @@ LOCAL_APPS = [
     'api.apps.ApiConfig',
     'nft.apps.NftConfig',
     'administration.apps.AdministrationConfig',
+    'notification.apps.NotificationConfig',
 ]
 
 
