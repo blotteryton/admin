@@ -34,7 +34,10 @@ class NFTCollectionForm(forms.ModelForm):
                 raise forms.ValidationError(f"Not enough money (TON {configuration.collection_create_amount})")
 
             try:
-                address = create_collection(user=self.request.user, **clean).get("address")
+                response = create_collection(user=self.request.user, **clean)
+                if not response.get("address"):
+                    raise forms.ValidationError(response)
+                address = response.get("address")
             except Exception as e:
                 print(e)
                 raise forms.ValidationError("Something went wrong..")

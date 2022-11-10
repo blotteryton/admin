@@ -71,7 +71,7 @@ def create_collection(user, name, description, image, categories, configuration=
         )
 
         if not collection_content_uri:
-            return
+            return "Image error"
 
         data = {
             "mnemonic": json.loads(user.wallet_mnemonic.replace("'", "\"")),
@@ -85,6 +85,7 @@ def create_collection(user, name, description, image, categories, configuration=
         return requests.post(url=f"{settings.TONEX_DOMAIN}/api/v1/nft/createCollection", data=data).json()
     except Exception as e:
         print(e)
+        return e
 
 
 def create_nft(user, collection, name, description, price, image, configuration=None):
