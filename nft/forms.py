@@ -33,14 +33,11 @@ class NFTCollectionForm(forms.ModelForm):
                     and self.request.user.wallet_balance < configuration.collection_create_amount):
                 raise forms.ValidationError(f"Not enough money (TON {configuration.collection_create_amount})")
 
-            try:
-                response = create_collection(user=self.request.user, **clean)
-                if not type(response) == dict or not response.get("address"):
-                    raise forms.ValidationError(response)
-                address = response.get("address")
-            except Exception as e:
-                print(e)
-                raise forms.ValidationError("Something went wrong..")
+            response = create_collection(user=self.request.user, **clean)
+            if not type(response) == dict or not response.get("address"):
+                raise forms.ValidationError(response)
+            address = response.get("address")
+
 
             if not address:
                 raise forms.ValidationError("Something went wrong..")
