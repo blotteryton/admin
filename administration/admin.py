@@ -5,7 +5,6 @@ from solo.admin import SingletonModelAdmin
 from nft.models import CollectionNFT
 from .models import Project, ProjectMember, Configuration, MarketplaceConfiguration
 
-
 User = get_user_model()
 
 
@@ -19,14 +18,29 @@ class ProjectMemberInline(admin.StackedInline):
 class ProjectAdmin(admin.ModelAdmin):
     inlines = [ProjectMemberInline, ]
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            if (not request.user.has_wallet or not request.user.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed):
+                return False
+        return super(ProjectAdmin, self).has_module_permission(request)
+
 
 @admin.register(Configuration)
 class ConfigurationAdmin(SingletonModelAdmin):
-    pass
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            if (not request.user.has_wallet or not request.user.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed):
+                return False
+        return super(ConfigurationAdmin, self).has_module_permission(request)
 
 
 @admin.register(MarketplaceConfiguration)
 class MarketplaceConfigurationAdmin(SingletonModelAdmin):
+    readonly_fields = ("marketplace_address", "marketplace_deployed",)
+
     def get_field_queryset(self, db, db_field, request):
         if db_field.name in ("recommended_collections", "popular_collections"):
             return CollectionNFT.objects.filter(is_approved_to_sale=True).exclude(user__projectmember=None)

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db.models import Q
 
+from administration.models import MarketplaceConfiguration
 from .models import NFT, CategoryNFT, CollectionNFT, DrawNFT, SaleNFT
 
 from django.urls import reverse
@@ -25,6 +26,13 @@ class DrawNFTAdmin(admin.ModelAdmin):
     form = NFTDrawForm
     exclude = ("user",)
     list_display = ("start_date", "finish_date", "category")
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            if (not request.user.has_wallet or not request.user.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed):
+                return False
+        return super(DrawNFTAdmin, self).has_module_permission(request)
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -58,6 +66,13 @@ class SaleNFTAdmin(admin.ModelAdmin):
     form = NFTSaleForm
     exclude = ("user",)
     list_display = ("start_date", "finish_date", "content_object")
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            if (not request.user.has_wallet or not request.user.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed):
+                return False
+        return super(SaleNFTAdmin, self).has_module_permission(request)
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -99,6 +114,13 @@ class NFTAdmin(DjangoObjectActions, admin.ModelAdmin):
     search_fields = ('name', 'description')
     list_filter = (NFTCollectionFilter,)
     change_actions = ('mint',)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            if (not request.user.has_wallet or not request.user.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed):
+                return False
+        return super(NFTAdmin, self).has_module_permission(request)
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -169,6 +191,13 @@ class NFTCollectionAdmin(DjangoObjectActions, admin.ModelAdmin):
     changelist_actions = ('create_sale', 'create_draw')
     change_actions = ("approve",)
 
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            if (not request.user.has_wallet or not request.user.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed):
+                return False
+        return super(NFTCollectionAdmin, self).has_module_permission(request)
+
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
             return False
@@ -205,7 +234,6 @@ class NFTCollectionAdmin(DjangoObjectActions, admin.ModelAdmin):
                 return admin_form(*args, **kwargs)
 
         return AdminFormWithRequest
-
 
     def list_categories(self, obj):
         return ", ".join([c.name for c in obj.categories.all()])

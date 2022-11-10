@@ -19,13 +19,14 @@
             {% if user.has_wallet %}
                 {% translate 'Wallet: ' %}<strong style="text-transform: none !important;">{{ user.wallet_address }}</strong>.
                 {% translate 'Balance: ' %}<strong>{{ user.wallet_balance }}</strong>.
+                {% translate 'Deployed: ' %}<strong>{{ user.is_wallet_deployed }}</strong>.
             {% endif %}
         {% endblock %}
         {% block userlinks %}
             {{ block.super }}
-            {% if not user.has_wallet %}
-                / <a href="{% url 'create_wallet' %}">{% translate 'Create Wallet' %}</a>
-            {% endif %}
+                {% if not user.has_wallet %}
+                    / <a href="{% url 'create_wallet' %}">{% translate 'Create Wallet' %}</a>
+                {% endif %}
         {% endblock %}
     </div>
 {% endif %}

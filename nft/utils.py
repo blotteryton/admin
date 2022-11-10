@@ -113,3 +113,28 @@ def create_nft(user, collection, name, description, price, image, configuration=
         return requests.post(url=f"{settings.TONEX_DOMAIN}/api/v1/nft/createNft", data=data).json()
     except Exception as e:
         print(e)
+
+
+def create_marketplace(user):
+    try:
+        if user.wallet_address:
+            data = {
+                "ownerAddress": user.wallet_address
+            }
+            return requests.post(url=f"{settings.TONEX_DOMAIN}/api/v1/marketplace/createMarketplace", data=data).json()
+    except Exception as e:
+        print(e)
+
+
+def deploy_marketplace(user, marketplace_address):
+    try:
+        if user.wallet_address:
+            data = {
+                "mnemonic": json.loads(user.wallet_mnemonic.replace("'", "\"")),
+                "address": marketplace_address,
+                "amount": 0.5
+            }
+
+            return requests.post(url=f"{settings.TONEX_DOMAIN}/api/v1/marketplace/deployMarketplace", data=data).json()
+    except Exception as e:
+        print(e)

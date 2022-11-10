@@ -5,7 +5,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.models import ContentType
 
-from users.utils import get_wallet_balance, get_wallet_deployed, deploy_wallet
+from administration.models import MarketplaceConfiguration, Configuration
+from nft.utils import create_marketplace, deploy_marketplace
+from users.utils import get_wallet_balance, get_wallet_deployed, deploy_wallet, create_wallet
 
 
 class User(AbstractUser):
@@ -27,6 +29,8 @@ class User(AbstractUser):
 
             if group.permissions.filter(codename=codename).exists() and (
                     not self.has_wallet or not self.is_wallet_deployed
+                    or not MarketplaceConfiguration.get_solo().marketplace_deployed
+                    or not Configuration.get_solo().is_configured()
             ):
                 return False
 
@@ -49,6 +53,21 @@ class User(AbstractUser):
         balance = get_wallet_balance(address=self.wallet_address)
         if float(balance) > 0.05 and not self.wallet_deployed and not cache.get(f"send_deploy_{self.wallet_address}"):
             deploy_wallet(self)
+
+        if self.is_superuser:
+            from administration.models import MarketplaceConfiguration
+
+            market_conf = MarketplaceConfiguration.get_solo()
+            if not market_conf.marketplace_address:
+                if address := create_marketplace(self).get("address"):
+                    market_conf.marketplace_address = address
+                    market_conf.save()
+            else:
+                if float(balance) > 0.5 and not market_conf.marketplace_deployed:
+                    response = deploy_marketplace(self, market_conf.marketplace_address)
+                    if response.get("@type") == "ok":
+                        market_conf.marketplace_deployed = True
+                        market_conf.save()
 
         return balance
 

@@ -5,9 +5,6 @@ from django.contrib.auth import get_user_model
 from solo.models import SingletonModel
 
 
-User = get_user_model()
-
-
 class Project(models.Model):
     class Languages(models.TextChoices):
         RUSSIAN = "RUSSIAN", "Русский"
@@ -37,12 +34,14 @@ class ProjectMember(models.Model):
     avatar = models.ImageField(upload_to="blogger_avatars/", blank=True, null=True)
     cover = models.ImageField(upload_to="blogger_covers/", blank=True, null=True)
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT, blank=True, null=True)
+    user = models.ForeignKey("users.User", on_delete=models.PROTECT, blank=True, null=True)
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         if not self.user:
+            User = get_user_model()
+
             user = User(first_name=self.name, last_name=self.last_name, email=self.email, username=self.username)
             user.is_staff = True
             user.save()
@@ -101,6 +100,9 @@ class Configuration(SingletonModel):
 
     nft_item_content_base_uri = models.CharField(max_length=255, blank=True, null=True)
 
+    def is_configured(self):
+        return all(self.__getattribute__(field.name) for field in self._meta.fields)
+
     def __str__(self):
         return "Configuration"
 
@@ -113,6 +115,9 @@ class MarketplaceConfiguration(SingletonModel):
     recommended_collections = models.ManyToManyField("nft.CollectionNFT", related_name="recommended_collections")
     popular_collections = models.ManyToManyField("nft.CollectionNFT", related_name="popular_collections")
     recommended_authors = models.ManyToManyField("users.User")
+
+    marketplace_address = models.CharField(max_length=255, blank=True, null=True)
+    marketplace_deployed = models.BooleanField(default=False)
 
     def __str__(self):
         return "Marketplace configuration"
