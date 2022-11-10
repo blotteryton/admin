@@ -35,7 +35,7 @@ class NFTCollectionForm(forms.ModelForm):
 
             try:
                 response = create_collection(user=self.request.user, **clean)
-                if not response.get("address"):
+                if not type(response) == dict or not response.get("address"):
                     raise forms.ValidationError(response)
                 address = response.get("address")
             except Exception as e:
