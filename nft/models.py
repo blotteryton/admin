@@ -17,6 +17,7 @@ class NFT(models.Model):
 
     is_mint = models.BooleanField(default=False)
     address = models.CharField(max_length=255, blank=True, null=True)
+    sale_address = models.CharField(max_length=255, blank=True, null=True)
     index = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):

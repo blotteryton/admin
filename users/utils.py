@@ -4,6 +4,8 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 
+from administration.models import MarketplaceConfiguration, Configuration
+
 
 def create_wallet(user, domain: str = settings.TONEX_DOMAIN):
     try:
@@ -61,3 +63,26 @@ def get_wallet_deployed(address: str, domain: str = settings.TONEX_DOMAIN):
         return deployed
     except Exception as e:
         print(e)
+
+
+def create_nft_sale(nft_address, full_price, collection_address, domain: str = settings.TONEX_DOMAIN):
+    data = {
+        "marketplaceAddress": MarketplaceConfiguration.get_solo().marketplace_address,
+        "nftAddress": nft_address,
+        "fullPrice": full_price,
+        "marketplaceFee": Configuration.get_solo().nft_marketplace_fee,
+        "collectionAddress": collection_address,
+        "royaltyAmount": Configuration.get_solo().nft_create_royalty
+    }
+
+    return requests.post(f"{domain}/api/v1/nft/sale", data=data).json()
+
+
+def deploy_nft_sale(nft_sale_address, mnemonic: str, domain: str = settings.TONEX_DOMAIN):
+    data = {
+        "mnemonic": json.loads(mnemonic.replace("'", "\"")),
+        "nftSaleAddress": nft_sale_address,
+        "marketAddress": MarketplaceConfiguration.get_solo().marketplace_address
+    }
+
+    return requests.post(f"{domain}/api/v1/nft/deploySale", data=data)

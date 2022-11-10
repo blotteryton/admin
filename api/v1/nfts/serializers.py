@@ -26,4 +26,4 @@ class NFTSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NFT
-        fields = ("id", "username", "name", "description", "image", "price", "categories", "address")
+        fields = ("id", "username", "name", "description", "image", "price", "categories", "sale_address")

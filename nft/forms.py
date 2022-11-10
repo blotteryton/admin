@@ -2,7 +2,9 @@ from django import forms
 from django.utils import timezone
 
 from administration.models import Configuration
+from api.v1.account.utils import create_transfer
 from nft.utils import create_collection, create_nft
+from users.utils import create_nft_sale
 
 
 class NFTCollectionForm(forms.ModelForm):
@@ -56,6 +58,7 @@ class NFTForm(forms.ModelForm):
         self.index = kwargs.pop('index', None)
         self.address = kwargs.pop('address', None)
         self.request = kwargs.pop('request', None)
+        self.sale_address = kwargs.pop('sale_address', None)
 
         super().__init__(*args, **kwargs)
 
@@ -71,17 +74,23 @@ class NFTForm(forms.ModelForm):
 
         if not self.instance.address:
             configuration = Configuration.get_solo()
+            user = self.request.user
+
             if (configuration.nft_create_amount
-                    and self.request.user.wallet_balance < configuration.nft_create_amount):
+                    and user.wallet_balance < configuration.nft_create_amount):
                 raise forms.ValidationError(f"Not enough money (TON {configuration.nft_create_amount})")
 
             if configuration.nft_create_amount and clean.get("price", 0) < configuration.nft_create_amount:
                 raise forms.ValidationError({"price": f"Minimal value: TON {configuration.nft_create_amount}"})
 
+            if clean.get("price", 0) > user.wallet_balance:
+                raise forms.ValidationError({"price": f"Not enough money: TON {user.wallet_balance}"})
+
             try:
-                nft_info = create_nft(user=self.request.user, **clean)
+                nft_info = create_nft(user=user, **clean)
                 address = nft_info.get("address")
                 index = nft_info.get("index")
+
             except Exception as e:
                 print(e)
                 raise forms.ValidationError("Something went wrong..")
@@ -92,12 +101,24 @@ class NFTForm(forms.ModelForm):
             self.address = address
             self.index = index
 
+            collection_address = clean.get("collection").address
+            price = clean.get("price")
+
+            create_transfer(source_wallet=user.wallet_address, mnemonic=user.wallet_mnemonic,
+                            dest_wallet=collection_address, amount=price, comment="nft create")
+
+            sale = create_nft_sale(nft_address=address, full_price=price, collection_address=collection_address)
+
+            sale_address = sale.get("address")
+            self.sale_address = sale_address
+
         return clean
 
     def save(self, commit=True):
-        self.instance.user = self.request.user
-        self.instance.address = self.address
         self.instance.index = self.index
+        self.instance.address = self.address
+        self.instance.user = self.request.user
+        self.instance.sale_address = self.sale_address
 
         return super(NFTForm, self).save(commit)
 

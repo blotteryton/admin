@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.db.models import Q
 
 from administration.models import MarketplaceConfiguration
+from users.utils import deploy_nft_sale
 from .models import NFT, CategoryNFT, CollectionNFT, DrawNFT, SaleNFT
 
 from django.urls import reverse
@@ -109,11 +110,10 @@ class SaleNFTAdmin(admin.ModelAdmin):
 @admin.register(NFT)
 class NFTAdmin(DjangoObjectActions, admin.ModelAdmin):
     form = NFTForm
-    exclude = ('is_mint', 'address', 'index')
-    list_display = ('name', 'price', 'collection', 'address', 'is_mint')
+    exclude = ('is_mint', 'address', 'index', 'sale_address')
+    list_display = ('name', 'price', 'collection', 'address', 'sale_address')
     search_fields = ('name', 'description')
     list_filter = (NFTCollectionFilter,)
-    change_actions = ('mint',)
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
@@ -161,7 +161,9 @@ class NFTAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     def get_field_queryset(self, db, db_field, request):
         if db_field.name == "collection":
-            return CollectionNFT.objects.filter(user_id=request.user.pk).exclude(Q(address=None) | Q(address=""))
+            return CollectionNFT.objects.filter(
+                user_id=request.user.pk, is_approved_to_sale=False
+            ).exclude(Q(address=None) | Q(address=""))
         return super(NFTAdmin, self).get_field_queryset(db, db_field, request)
 
     def mint(self, request, obj):
@@ -246,6 +248,8 @@ class NFTCollectionAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     def approve(self, request, obj):
         if not obj.is_approved_to_sale:
+            for nft in obj.nft_set.all():
+                deploy_nft_sale(nft_sale_address=nft.sale_address, mnemonic=request.user.wallet_mnemonic)
             obj.is_approved_to_sale = True
             obj.save()
 

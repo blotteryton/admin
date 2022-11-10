@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from administration.models import MarketplaceConfiguration, Configuration
 from nft.utils import create_marketplace, deploy_marketplace
-from users.utils import get_wallet_balance, get_wallet_deployed, deploy_wallet, create_wallet
+from users.utils import get_wallet_balance, get_wallet_deployed, deploy_wallet
 
 
 class User(AbstractUser):

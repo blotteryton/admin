@@ -13,4 +13,4 @@ User = get_user_model()
 class NftView(RetrieveAPIView):
     permission_classes = [AllowAny]
     serializer_class = NFTSerializer
-    queryset = NFT.objects.filter(collection__is_approved_to_sale=True)
+    queryset = NFT.objects.filter(collection__is_approved_to_sale=True).exclude(sale_address=None)

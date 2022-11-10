@@ -100,6 +100,13 @@ class Configuration(SingletonModel):
 
     nft_item_content_base_uri = models.CharField(max_length=255, blank=True, null=True)
 
+    nft_marketplace_fee = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True, validators=[
+            MinValueValidator(0.0099)
+        ])
+    nft_create_royalty = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True, validators=[
+            MinValueValidator(0.0099)
+        ])
+
     def is_configured(self):
         return all(self.__getattribute__(field.name) for field in self._meta.fields)
 
